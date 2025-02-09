@@ -4,10 +4,10 @@ ObjectBBox::ObjectBBox(const std::string &lbl, float conf_, float cx, float cy, 
     : label(lbl), conf(conf_)
 {
     // Convert from center coordinates to top-left coordinates
-    float x1 = (cx - w / 2) * scale_x;
-    float y1 = (cy - h / 2) * scale_y;
-    float x2 = (cx + w / 2) * scale_x;
-    float y2 = (cy + h / 2) * scale_y;
+    x1 = (cx - w / 2) * scale_x;
+    y1 = (cy - h / 2) * scale_y;
+    x2 = (cx + w / 2) * scale_x;
+    y2 = (cy + h / 2) * scale_y;
     bbox = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
 }
 
