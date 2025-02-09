@@ -54,7 +54,7 @@ void YOLOv11::loadClassNames(const std::string &names_file)
     }
 
     assert(!class_names_.empty() && "No class names loaded from file");
-    std::cout << "Loaded " << class_names_.size() << " class names" << std::endl;
+    DEBUG_PRINT("Loaded " << class_names_.size() << " class names");
 }
 
 YOLOv11::YOLOv11(

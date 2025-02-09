@@ -16,4 +16,4 @@ struct Detection
     size_t bbox_idx;
 };
 
-void process_video(YOLOv11 &model, const std::string &video_path, const std::string &output_dir);
+void process_video(YOLOv11 &model, const std::string &video_path, const std::string &output_dir="", bool display=true);

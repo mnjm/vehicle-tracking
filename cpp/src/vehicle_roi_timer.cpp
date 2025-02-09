@@ -1,4 +1,5 @@
 #include "vehicle_roi_timer.hpp"
+#include "debug.hpp"
 
 #define TOTAL_COLORS 30
 #define DIST_THRESH 40.0f
@@ -24,35 +25,41 @@ std::string format_time(float secs)
     return ret_str;
 }
 
-void process_video(YOLOv11 &model, const std::string &video_path, const std::string &output_dir)
+void process_video(YOLOv11 &model, const std::string &video_path, const std::string &output_dir, bool display)
 {
     cv::VideoCapture cap(video_path);
-    if (!cap.isOpened())
-    {
-        std::cerr << "Error: Reading " << video_path << " video failed." << std::endl;
-        return;
-    }
+    assert(cap.isOpened() && "Error reading video file");
+
+    DEBUG_PRINT("Processing " << video_path);
 
     int vid_w = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
     int vid_h = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
     int fps = static_cast<int>(cap.get(cv::CAP_PROP_FPS));
-    std::cout << "Video WxH:" << vid_w << "x" << vid_h << " FPS:" << fps << std::endl;
+    DEBUG_PRINT("Video WxH:" << vid_w << "x" << vid_h << " FPS:" << fps);
 
     // Read ROI from file
     std::string roi_path = video_path.substr(0, video_path.find_last_of('.')) + "_roi.txt";
+    assert(std::filesystem::exists(roi_path) && "ROI file not found");
     std::vector<int> roi(4);
     std::ifstream roi_file(roi_path);
     for (int i = 0; i < 4; i++)
     {
         roi_file >> roi[i];
     }
+    DEBUG_PRINT("ROI Read" << roi[0] << " " << roi[1] << " " << roi[2] << " " << roi[3]);
 
     // Setup output video
-    std::filesystem::path output_path = std::filesystem::path(output_dir) /
-                                        std::filesystem::path(video_path).filename();
-    cv::VideoWriter out_vid(output_path.string(),
-                            cv::VideoWriter::fourcc('m', 'p', '4', 'v'),
-                            fps, cv::Size(vid_w, vid_h));
+    cv::VideoWriter out_vid;
+    bool save_video_b = output_dir != "";
+    if (true == save_video_b) {
+        std::filesystem::path output_path = std::filesystem::path(output_dir) /
+                                            std::filesystem::path(video_path).filename();
+        out_vid.open(output_path.string(),
+                cv::VideoWriter::fourcc('m', 'p', '4', 'v'),
+                fps, cv::Size(vid_w, vid_h));
+        
+        assert(out_vid.isOpened() && "Error Could not create output video");
+    }
 
     std::vector<Detection> det_l;
     const float dist_thresh = DIST_THRESH;
@@ -136,17 +143,21 @@ void process_video(YOLOv11 &model, const std::string &video_path, const std::str
                         font_scale, det.color, font_thickness, cv::LINE_AA);
         }
 
-        out_vid.write(frame);
-        cv::imshow("show", frame);
+        if (true == save_video_b) {
+            out_vid.write(frame);
+        }
 
-        char key = cv::waitKey(1);
-        if (key == 'n')
-            break;
-        if (key == 'q')
-            return;
+        if (display) {
+            cv::imshow("show", frame);
+            char key = cv::waitKey(1);
+            if (key == 'q')
+                break;
+        }
     }
 
     cap.release();
-    out_vid.release();
+    if (true == save_video_b) {
+        out_vid.release();
+    }
     cv::destroyAllWindows();
 }

@@ -8,8 +8,9 @@ int main(int argc, char *argv[])
 {
     argparse::ArgumentParser parser("Vehicle ROI Timer");
     parser.add_argument("--video").help("Path to video file to process").required();
-    parser.add_argument("--model").help("Path to the YOLO model file").required();
-
+    parser.add_argument("--model").help("Path to the YOLO model file").default_value("./data/yolo11s.onnx");
+    parser.add_argument("--output_dir").help("Path to output directory").default_value("./output");
+    parser.add_argument("--no_display").help("Do not display").default_value(false).implicit_value(true);
     try
     {
         parser.parse_args(argc, argv);
@@ -22,14 +23,16 @@ int main(int argc, char *argv[])
     }
     std::string video_path = parser.get<std::string>("--video");
     std::string model_path = parser.get<std::string>("--model");
+    std::string output_dir = parser.get<std::string>("--output_dir");
+    bool display_b = ! parser.get<bool>("--no_display");
     assert(std::filesystem::exists(video_path) && "Video file does not exists!");
 
-    std::string output_dir = "./out_vid_dir";
-
     // Create output directory if it doesn't exist
-    std::filesystem::create_directories(output_dir);
+    if ("" != output_dir) {
+        std::filesystem::create_directories(output_dir);
+    }
     YOLOv11 model(model_path);
-    process_video(model, video_path, output_dir);
+    process_video(model, video_path, output_dir, display_b);
 
     return 0;
 }

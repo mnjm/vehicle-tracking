@@ -1,3 +1,6 @@
+option(OPENCL_ACC "Enable OpenCL acceleration" OFF)
+option(CUDA_ACC "Enable CUDA acceleration" OFF)
+
 cmake_minimum_required(VERSION 3.10)
 project(Vehicle_ROI_Timer)
 
@@ -6,8 +9,16 @@ set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
 endif()
-add_definitions(-DOPENCL_ACC)
-# add_definitions(-DCUDA_ACC)
+
+if (CUDA_ACC)
+    message(STATUS "CUDA Acceleration: ${CUDA_ACC}")
+    add_definitions(-DCUDA_ACC)
+endif()
+
+if (OPENCL_ACC)
+    message(STATUS "OpenCL Acceleration: ${OPENCL_ACC}")
+    add_definitions(-DOPENCL_ACC)
+endif()
 
 # Find OpenCV
 find_package(OpenCV REQUIRED)

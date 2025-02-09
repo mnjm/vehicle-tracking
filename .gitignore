@@ -4,3 +4,4 @@
 *_roi.txt
 cpp/build/*
 .vscode/
+cpp/vehicle_roi_timer
