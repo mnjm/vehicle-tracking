@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
 endif()
+add_definitions(-DOPENCL_ACC)
+# add_definitions(-DCUDA_ACC)
 
 # Find OpenCV
 find_package(OpenCV REQUIRED)

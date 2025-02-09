@@ -20,10 +20,7 @@ std::string format_time(float secs)
     float remaining_secs = std::fmod(secs, 60.0f);
     std::string ret_str = std::to_string(remaining_secs);
     ret_str = ret_str.substr(0, ret_str.find('.') + 3);
-    if (mins > 0)
-    {
-        ret_str = std::to_string(mins) + ":" + ret_str;
-    }
+    ret_str = std::to_string(mins) + ":" + ret_str;
     return ret_str;
 }
 

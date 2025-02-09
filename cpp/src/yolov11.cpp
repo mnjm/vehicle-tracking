@@ -67,8 +67,19 @@ YOLOv11::YOLOv11(
 {
     // Load the network
     net_ = cv::dnn::readNetFromONNX(model_path);
-    net_.setPreferableBackend(cv::dnn::dnn4_v20241223::DNN_BACKEND_OPENCV);
-    net_.setPreferableTarget(cv::dnn::dnn4_v20241223::DNN_TARGET_CPU);
+#ifdef CUDA_ACC
+    net_.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+    net_.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+    std::cout << "Using CUDA" << std::endl;
+#elif OPENCL_ACC
+    net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    net_.setPreferableTarget(cv::dnn::DNN_TARGET_OPENCL);
+    std::cout << "Using OPENCL" << std::endl;
+#else
+    net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    std::cout << "Using CPU" << std::endl;
+#endif
     assert(!net_.empty() && "Failed to load ONNX model");
     // If names_file is empty, use "coco.names" from the location of the model_path
     std::string resolved_names_file = names_file;

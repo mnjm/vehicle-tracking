@@ -3,3 +3,4 @@
 *.onnx
 *_roi.txt
 cpp/build/*
+.vscode/
