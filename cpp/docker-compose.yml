@@ -1,0 +1,8 @@
+services:
+  vehicle-roi-timer:
+    build: .
+    container_name: vehicle_roi_timer
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+    restart: no

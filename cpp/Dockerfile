@@ -1,21 +1,28 @@
 FROM ubuntu:22.04
 
-WORKDIR /app
-
 RUN apt-get update && apt-get install -y \
-    cmake \
     build-essential \
-    pkg-config \
+    cmake \
+    git \
+    wget \
     libopencv-dev \
-    ffmpeg \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+WORKDIR /app
 
-RUN mkdir -p build
+COPY CMakeLists.txt .
+COPY build.sh .
+COPY include/ include/
+COPY src/ src/
 
-RUN cd build && cmake .. && make
+RUN chmod +x build.sh
 
-./vehicle_roi_timer --video ./data/9521384-uhd_3840_2160_15fps.mp4 --model ./data/yolo11s.onnx
+RUN ./build.sh
 
-CMD ["./build/vehicle_roi_timer", "--video", "/app/data/5473765-uhd_3840_2160_24fps.mp4", "--model", "/app/data/yolo11s.onnx"]
+CMD bash -c 'for video in /app/data/*; do \
+    if [[ -f "$video" ]]; then \
+        echo "Processing: $video"; \
+        ./build/vehicle_roi_timer --video "$video"; \
+    fi \
+done'
