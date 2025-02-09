@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
-project(YOLOv11_Detector)
+project(Vehicle_ROI_Timer)
 
 set(CMAKE_CXX_STANDARD 17)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG_MODE)
+endif()
 
 # Find OpenCV
 find_package(OpenCV REQUIRED)

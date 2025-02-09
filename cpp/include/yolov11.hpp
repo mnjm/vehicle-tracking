@@ -40,7 +40,7 @@ private:
 public:
     YOLOv11(
         const std::string &model_path,
-        float min_conf = 0.35f,
+        float min_conf = 0.45f,
         float iou_thresh = 0.45f,
         ClassChecker valid_class_checker = nullptr,
         const std::string &names_file = ""

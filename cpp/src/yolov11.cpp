@@ -1,4 +1,5 @@
 #include "yolov11.hpp"
+#include "debug.hpp"
 
 ObjectBBox::ObjectBBox(const std::string &lbl, float conf_, float cx, float cy, float w, float h, float scale_x, float scale_y)
     : label(lbl), conf(conf_)
@@ -97,15 +98,18 @@ cv::Mat YOLOv11::preprocess(const cv::Mat &image)
 {
     cv::Mat resized;
     cv::resize(image, resized, input_size_);
+    DEBUG_PRINT_MAT_SHAPE(resized);
 
     cv::Mat blob;
     cv::dnn::blobFromImage(resized, blob, 1.0 / 255.0, input_size_,
                            cv::Scalar(), true, false, CV_32F);
+    DEBUG_PRINT_MAT_SHAPE(blob);
     return blob;
 }
 
 std::vector<ObjectBBox> YOLOv11::postprocess(const cv::Mat &output, const cv::Size &original_size)
 {
+    DEBUG_PRINT_MAT_SHAPE(output);
     assert(output.dims == 2 && output.cols > 0 &&
            output.rows == (4 + class_names_.size()) &&
            "Invalid output shape");
@@ -201,9 +205,9 @@ std::vector<ObjectBBox> YOLOv11::detect(const cv::Mat &image)
     std::vector<cv::Mat> outputs;
     net_.forward(outputs, net_.getUnconnectedOutLayersNames());
     assert(outputs.size() == 1 && "Unexpected number of outputs");
-
+    cv::Mat rawOutput = outputs[0].reshape(0, 4 + class_names_.size());
     // Postprocess
-    return postprocess(outputs[0], original_size);
+    return postprocess(rawOutput, original_size);
 }
 
 

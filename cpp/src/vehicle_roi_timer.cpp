@@ -126,10 +126,14 @@ void process_video(YOLOv11 &model, const std::string &video_path, const std::str
             double font_scale = std::max(0.5, bbox_height / 200.0);
             int font_thickness = std::max(1, static_cast<int>(font_scale * 2));
 
+            int baseline;
             cv::Size txt_size = cv::getTextSize(t_str, cv::FONT_HERSHEY_SIMPLEX,
-                                                font_scale, font_thickness, nullptr);
+                                                font_scale, font_thickness, &baseline);
             cv::Point txt_pos(bbox_center.x - txt_size.width / 2,
                                 bbox_center.y + txt_size.height / 2);
+            cv::Point bgP1(txt_pos.x, txt_pos.y - txt_size.height - baseline);
+            cv::Point bgP2(txt_pos.x + txt_size.width, txt_pos.y + baseline);
+            cv::rectangle(frame, bgP1, bgP2, cv::Scalar(0, 0, 0), cv::FILLED);
 
             cv::putText(frame, t_str, txt_pos, cv::FONT_HERSHEY_SIMPLEX,
                         font_scale, det.color, font_thickness, cv::LINE_AA);
