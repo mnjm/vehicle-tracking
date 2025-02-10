@@ -23,7 +23,7 @@ You can build and run the app in 2 ways
 
 #### Build
 
-I have provided a handy (script)[./build.sh] to build the app. Given the requirements are satisfied, just run the script to build the app.
+I have provided a handy [script](./build.sh) to build the app. Given the requirements are satisfied, just run the script to build the app.
 
 The script supports a few modifiers
 - `./build.sh fresh` - Fresh builds the app
