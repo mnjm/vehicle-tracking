@@ -13,12 +13,14 @@ class ObjectBBox {
 public:
     std::string label;
     float conf;
-    cv::Rect bbox;
+    cv::Rect rect;
     float x1, x2, y1, y2;
 
     ObjectBBox(const std::string &lbl, float conf, float cx, float cy, float w, float h, float scale_x, float scale_y);
     cv::Mat draw(cv::Mat &img) const;
 };
+
+float calculateIoU(const ObjectBBox &box1, const ObjectBBox &box2);
 
 class YOLOv11 {
     

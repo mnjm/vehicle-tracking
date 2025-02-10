@@ -2,7 +2,8 @@
 #include "debug.hpp"
 
 #define TOTAL_COLORS 30
-#define DIST_THRESH 40.0f
+#define IOU_TRESH 0.45f
+#define HISTORY_LIMIT 5
 
 cv::Scalar generate_unique_colors()
 {
@@ -62,7 +63,6 @@ void process_video(YOLOv11 &model, const std::string &video_path, const std::str
     }
 
     std::vector<Detection> det_l;
-    const float dist_thresh = DIST_THRESH;
     cv::Scalar roi_color(255, 0, 0);
 
     cv::Mat frame;
@@ -79,44 +79,52 @@ void process_video(YOLOv11 &model, const std::string &video_path, const std::str
         for (size_t bbox_idx = 0; bbox_idx < bbox_l.size(); bbox_idx++)
         {
             const auto &bbox = bbox_l[bbox_idx];
-            cv::Point2f center((bbox.x1 + bbox.x2) / 2, (bbox.y1 + bbox.y2) / 2);
 
             // Find closest existing detection
-            float min_dist = std::numeric_limits<float>::max();
-            int min_idx = -1;
+            float max_iou = 0.0f;
+            int max_idx = -1;
             for (size_t idx = 0; idx < det_l.size(); idx++)
             {
-                float dist = cv::norm(center - det_l[idx].center);
-                if (dist < min_dist)
+                float iou = calculateIoU(bbox, det_l[idx].bbox);
+                if (iou > max_iou)
                 {
-                    min_dist = dist;
-                    min_idx = idx;
+                    max_iou = iou;
+                    max_idx = idx;
                 }
             }
 
-            Detection new_det;
-            new_det.center = center;
-            new_det.bbox_idx = bbox_idx;
-
-            if (min_dist < dist_thresh && min_idx >= 0)
-            {
-                new_det.color = det_l[min_idx].color;
-                new_det.frame_count = det_l[min_idx].frame_count + 1;
+            if (max_idx >= 0 && max_iou >= IOU_TRESH) {
+                det_l[max_idx].bbox = bbox;
+                ++det_l[max_idx].frame_count;
+                det_l[max_idx].dangling_frame_count = 0;
+                new_det_l.push_back(det_l[max_idx]);
+                det_l.erase(det_l.begin() + max_idx);
+            } else {
+                cv::Scalar color = generate_unique_colors();
+                Detection new_det(
+                    color,
+                    1,
+                    bbox
+                );
+                new_det_l.push_back(new_det);
             }
-            else
-            {
-                new_det.color = generate_unique_colors();
-                new_det.frame_count = 1;
-            }
-            new_det_l.push_back(new_det);
         }
 
+        for (auto det : det_l) {
+            ++det.dangling_frame_count;
+            ++det.frame_count;
+            if (det.dangling_frame_count <= HISTORY_LIMIT) {
+                new_det_l.push_back(det);
+            }
+        }
+        det_l.clear();
         det_l = new_det_l;
 
         // Draw detections
         for (const auto &det : det_l)
         {
-            const auto &bbox = bbox_l[det.bbox_idx];
+            if (det.dangling_frame_count > 0) continue;
+            const auto &bbox = det.bbox;
             cv::Point p1(roi[0] + bbox.x1, roi[1] + bbox.y1);
             cv::Point p2(roi[0] + bbox.x2, roi[1] + bbox.y2);
             cv::rectangle(frame, p1, p2, det.color, 2);
@@ -140,7 +148,7 @@ void process_video(YOLOv11 &model, const std::string &video_path, const std::str
             cv::rectangle(frame, bgP1, bgP2, cv::Scalar(0, 0, 0), cv::FILLED);
 
             cv::putText(frame, t_str, txt_pos, cv::FONT_HERSHEY_SIMPLEX,
-                        font_scale, det.color, font_thickness, cv::LINE_AA);
+                        font_scale, cv::Scalar(255, 255, 255), font_thickness, cv::LINE_AA);
         }
 
         if (true == save_video_b) {

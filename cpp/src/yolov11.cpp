@@ -9,26 +9,26 @@ ObjectBBox::ObjectBBox(const std::string &lbl, float conf_, float cx, float cy, 
     y1 = (cy - h / 2) * scale_y;
     x2 = (cx + w / 2) * scale_x;
     y2 = (cy + h / 2) * scale_y;
-    bbox = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
+    rect = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
 }
 
 cv::Mat ObjectBBox::draw(cv::Mat &img) const
 {
-    cv::rectangle(img, bbox, cv::Scalar(0, 255, 0), 2);
+    cv::rectangle(img, rect, cv::Scalar(0, 255, 0), 2);
     cv::putText(img, label + " " + std::to_string(conf).substr(0, 4),
-                cv::Point(bbox.x, bbox.y - 5),
+                cv::Point(rect.x, rect.y - 5),
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 2);
     return img;
 }
 
 float calculateIoU(const ObjectBBox &box1, const ObjectBBox &box2)
 {
-    auto intersection = box1.bbox & box2.bbox;
+    auto intersection = box1.rect & box2.rect;
     if (intersection.empty())
         return 0.0f;
 
     float intersection_area = intersection.area();
-    float union_area = box1.bbox.area() + box2.bbox.area() - intersection_area;
+    float union_area = box1.rect.area() + box2.rect.area() - intersection_area;
     return intersection_area / union_area;
 }
 
