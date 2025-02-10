@@ -31,7 +31,12 @@ int main(int argc, char *argv[])
     if ("" != output_dir) {
         std::filesystem::create_directories(output_dir);
     }
-    YOLOv11 model(model_path);
+    YOLOv11 model(
+        model_path,
+        0.45f,
+        0.45f,
+        [](int lbl_id, const std::string lbl)
+        { return lbl_id >= 0 && lbl_id <= 8; });
     process_video(model, video_path, output_dir, display_b);
 
     return 0;
