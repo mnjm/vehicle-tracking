@@ -2,6 +2,6 @@
 *.pt
 *.onnx
 *_roi.txt
-cpp/build/*
+build/*
 .vscode/
-cpp/vehicle_roi_timer
+vehicle_roi_timer
