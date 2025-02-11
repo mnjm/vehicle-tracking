@@ -57,16 +57,26 @@ This creates a `vehicle_roi_timer` binary.
   Shows help message and exits.
 - `-v, --version`
   Prints version information and exits.
+  
+I used `./data/yolo11s.onnx` but for low-powered edge machines, this can be swithed with `./data/yolo11n.onnx` using `--model` flag.
 
 ### Docker
 
-To build and run
+To build
 
 ```
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
-**Note**: Input videos and Model files are fed from `./data/` which is mounted as a docker volume. Output videos are also mounted to docker from `./output`. If you have videos in `./output` it will be overwritten.
+To see the logs
+
+```
+docker compose logs -f
+```
+
+**Note**
+- OpenCV 4.11.0 is required for YOLO ONNX models but isn't available prebuilt on Ubuntu 24.04. So I had to include OpenCV manual building in the Docker build, which significantly increases build time.
+- Input videos and Model files are fed from `./data/` which is mounted as a docker volume. Output videos are also mounted to docker from `./output`. If you have videos in `./output` it will be overwritten.
 
 ## Implementation details
 
@@ -87,7 +97,7 @@ Problem breakdown
 2. Feature-based Tracking
 3. Ensemble Methods
 
-Due to the time crunch, The one I have implemented here is Geometric-based **ROI / IoU Based Tracking**. I did try **Centroid Tracking** which did not work well for the videos I run on.
+Given the time constraints, I implemented Geometric-based ROI/IoU Tracking. I also tested Centroid Tracking, but it didn't perform well on my videos.
 
 ### 1. Geometric-based Tracking
 This approach relies on object position, movement, and shape.
@@ -185,4 +195,4 @@ There are the edge cases that plagues the current implementation
 
 ## Addendum
 
-- I initially wrote a rough version of this app in python, which you can see here ./python/vehicle_roi_timer.ipynb
+- I first wrote a rough version of this app in python with centroid tracking, which can be found here ./python/vehicle_roi_timer.ipynb

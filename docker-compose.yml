@@ -2,7 +2,17 @@ services:
   vehicle-roi-timer:
     build: .
     container_name: vehicle_roi_timer
+    environment:
+      - OPENCV_VIDEOIO_PRIORITY_MSMF=0
+      - DISPLAY=
     volumes:
       - ./data:/app/data
       - ./output:/app/output
     restart: no
+    command: >
+      bash -c 'for video in /app/data/*.mp4; do
+        if [[ -f "$$video" ]]; then
+          echo "Processing: $$video";
+          ./vehicle_roi_timer --video "$$video" --no_display;
+        fi
+      done'
