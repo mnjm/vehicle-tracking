@@ -6,6 +6,20 @@
     - ROI is read from a text file using the video path. (`<video_path>_roi.txt`)
     - Output should a video file, with ROI, Vehicle detection and timer being displayed.
 
+## Demo
+
+<p styles="font-size: 2em; font-weight:bold;" align="center"><a href="https://youtu.be/qanK6EtrPQE">Click to play</a></p>
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=qanK6EtrPQE" align="center" target="_blank">
+ <img src="http://img.youtube.com/vi/qanK6EtrPQE/mqdefault.jpg" alt="Watch the video" width="560" height="315" border="10" />
+</a>
+
+<p styles="font-size: 2em; font-weight:bold;" align="center"><a href="https://www.youtube.com/watch?v=195PMzpf240">Click to play</a></p>
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=195PMzpf240" align="center" target="_blank">
+ <img src="http://img.youtube.com/vi/195PMzpf240/mqdefault.jpg" alt="Watch the video" width="560" height="315" border="10" />
+</a>
+
 ## How to Build and Run?
 
 You can build and run the app in 2 ways
@@ -57,7 +71,7 @@ This creates a `vehicle_roi_timer` binary.
   Shows help message and exits.
 - `-v, --version`
   Prints version information and exits.
-  
+
 I used `./data/yolo11s.onnx` but for low-powered edge machines, this can be swithed with `./data/yolo11n.onnx` using `--model` flag.
 
 ### Docker
