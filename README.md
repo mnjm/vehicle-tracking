@@ -1,212 +1,119 @@
 # Vehicle ROI Timer
 
+A tool to detect vehicles within a Region of Interest (ROI) in videos and display their dwell time.
+
 ## Objective
 
-- Given a video, detect vehicles inside a ROI in the video and display the time that they are present in the ROI.
-    - ROI is read from a text file using the video path. (`<video_path>_roi.txt`)
-    - Output should a video file, with ROI, Vehicle detection and timer being displayed.
+- Detect vehicles within a predefined ROI in video footage
+- Calculate and display the time each vehicle spends in the ROI
+- Generate an output video showing:
+  - The ROI boundary
+  - Vehicle detections
+  - Timers for each vehicle
 
 ## Demo
 
+### Example 1
 <p styles="font-size: 2em; font-weight:bold;" align="center"><a href="https://youtu.be/qanK6EtrPQE">Click to play</a></p>
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=qanK6EtrPQE" align="center" target="_blank">
+<p align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=qanK6EtrPQE" target="_blank">
  <img src="http://img.youtube.com/vi/qanK6EtrPQE/mqdefault.jpg" alt="Watch the video" width="560" height="315" border="10" />
-</a>
+</a></p>
 
+
+### Example 2
 <p styles="font-size: 2em; font-weight:bold;" align="center"><a href="https://www.youtube.com/watch?v=195PMzpf240">Click to play</a></p>
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=195PMzpf240" align="center" target="_blank">
+<p align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=195PMzpf240" target="_blank">
  <img src="http://img.youtube.com/vi/195PMzpf240/mqdefault.jpg" alt="Watch the video" width="560" height="315" border="10" />
-</a>
+</a></p>
 
-## How to Build and Run?
+## Installation & Usage
 
-You can build and run the app in 2 ways
-1. Natively building the app
-2. Using Docker
-
-### Natively Building the app
+### Option 1: Native Build
 
 #### Requirements
-
-- Prebuilt Open-CV with DNN support
+- OpenCV (4.11.0+) with DNN support
 - GCC
 - CMake
 - Make
 
-#### Build
+#### Build Instructions
+```bash
+# Fresh build (with optional flags)
+./build.sh fresh [--debug] [--cuda] [--opencl]
 
-I have provided a handy [script](./build.sh) to build the app. Given the requirements are satisfied, just run the script to build the app.
+# Clean build artifacts
+./build.sh clean
+```
 
-The script supports a few modifiers
-- `./build.sh fresh` - Fresh builds the app
-- `./build.sh clean` - Cleans the app's build artifacts
+**Build Options:**
+- `--debug`: Enable debug mode
+- `--cuda`: Enable CUDA acceleration
+- `--opencl`: Enable OpenCL acceleration
 
-Options
-- `./build.sh <fresh> --debug` - Enables debug mode
-- `./build.sh <fresh> <--debug> --cuda` - Enables CUDA Acceleration in OpenCv's DNN
-- `./build.sh <fresh> <--debug> --opencl` - Enables OPENCL Acceleration in OpenCv's DNN
+### Option 2: Docker
+```bash
+docker compose up --build -d
+docker compose logs -f  # View logs
+```
 
-This creates a `vehicle_roi_timer` binary.
+**Note:** Docker build includes OpenCV compilation and may take significant time.
 
-#### To Run
+## Running the Application
 
 ```bash
-./vehicle_roi_timer [--help] [--version] --video VAR [--model VAR] [--output_dir VAR] [--no_display]
+./vehicle_roi_timer --video <path_to_video> [options]
 ```
 
-**Arguments**
-- `--video VAR`
-  Path to video file to process **[required]**.
-- `--model VAR`
-  Path to the YOLO model file
-  **Default:** `./data/yolo11s.onnx`
-- `--output_dir VAR`
-  Path to output directory
-  **Default:** `./output`
-- `--no_display`
-  Do not display output.
-- `-h, --help`
-  Shows help message and exits.
-- `-v, --version`
-  Prints version information and exits.
+**Options:**
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--video` | Path to input video (required) | - |
+| `--model` | Path to YOLO model file | `./data/yolo11s.onnx` |
+| `--output_dir` | Output directory | `./output` |
+| `--no_display` | Disable video display | False |
+| `-h, --help` | Show help message | - |
+| `-v, --version` | Show version info | - |
 
-I used `./data/yolo11s.onnx` but for low-powered edge machines, this can be swithed with `./data/yolo11n.onnx` using `--model` flag.
+**Model Notes:**
+- Use `yolo11n.onnx` for low-power devices
+- Model files should be placed in `./data/`
 
-### Docker
+## Implementation Details
 
-To build
+### Tracking Approaches
+1. **Geometric-based Tracking**
+   - Centroid Tracking
+   - ROI/IoU-based Tracking (implemented)
 
-```
-docker compose up --build -d
-```
+2. **Feature-based Tracking**
+   - Color Histogram Matching
+   - Feature Descriptors (SIFT, ORB)
+   - Deep Learning Embeddings
 
-To see the logs
+3. **Ensemble Methods**
+   - Hybrid Approaches
+   - Kalman Filter-based
+   - DeepSORT
 
-```
-docker compose logs -f
-```
+### Current Implementation
+- Uses YOLO for vehicle detection
+- Implements IoU-based geometric tracking
+- Time calculation based on video FPS
 
-**Note**
-- OpenCV 4.11.0 is required for YOLO ONNX models but isn't available prebuilt on Ubuntu 24.04. So I had to include OpenCV manual building in the Docker build, which significantly increases build time.
-- Input videos and Model files are fed from `./data/` which is mounted as a docker volume. Output videos are also mounted to docker from `./output`. If you have videos in `./output` it will be overwritten.
+## Known Limitations
 
-## Implementation details
+| Issue | Example | Impact |
+|-------|---------|--------|
+| YOLO detection errors | False negatives/positives | Missed vehicles or incorrect timers |
+| Vehicle occlusions | `overlapping.mp4` | Tracking failures |
+| Fast-moving vehicles | `high-speed.mp4` | Tracking inaccuracies |
+| Variable FPS | Frame drops | Time calculation errors |
+| Poor visibility | `out-of-focus.mp4` | Reduced detection accuracy |
 
-Problem breakdown
-1. Detect Vehicles in the ROI
-2. Track the vehicles
-3. Calculate the time that vehicle is present in the ROI
+## Additional Resources
 
-- (1) can use solved by using a object detection networks (like YOLO).
-- (2) There are number of ways to track vehicles in subsequent frames, which is described below.
-- (3) Since it is a video source with consistent FPS, time can be calculated based the FPS rate of the video
-    - `time (in sec) = frame count / fps`
-
-### Tracking Vehicles
-
-#### Approaches
-1. Geometric-based Tracking
-2. Feature-based Tracking
-3. Ensemble Methods
-
-Given the time constraints, I implemented Geometric-based ROI/IoU Tracking. I also tested Centroid Tracking, but it didn't perform well on my videos.
-
-### 1. Geometric-based Tracking
-This approach relies on object position, movement, and shape.
-
-#### Centroid Tracking
-- Tracks objects by computing their centroids in consecutive frames.
-- Pros:
-  - Simple and efficient.
-  - Works well in less crowded scenes.
-- Cons:
-  - Fails when objects overlap significantly.
-  - Cannot handle occlusions well.
-
-#### ROI / IoU-based Tracking
-- Uses Intersection over Union (IoU) to match objects across frames.
-- Pros:
-  - Effective in structured environments with minimal occlusion.
-  - Simple implementation.
-- Cons:
-  - Struggles with occlusion and fast-moving objects.
-  - May fail when objects move significantly between frames.
-
-### 2. Feature-based Tracking
-This method relies on identifying and matching key object features.
-
-- Color Histogram Matching
-  - Uses color distribution to track objects across frames.
-  - Pros:
-    - Robust to slight variations in object position.
-    - Works well for objects with unique colors.
-  - Cons:
-    - Fails when objects have similar colors.
-    - Sensitive to lighting changes.
-- Using Feature Descriptors
-  - Extracts keypoints (e.g., SIFT, ORB) and matches them between frames.
-  - Pros:
-    - Works well in cluttered scenes.
-    - Can handle slight occlusions.
-  - Cons:
-    - Computationally expensive.
-    - Struggles with drastic appearance changes.
-- Using Deep Learning Features/Embeddings
-  - Extracts high-level features using deep learning models for better tracking in complex scenes.
-  - Pros:
-    - More robust to occlusions and appearance variations.
-    - Works well in complex environments.
-  - Cons:
-    - Requires a pre-trained model.
-    - Slower than traditional methods.
-
-### 3. Ensemble Methods
-Combines multiple approaches to improve robustness.
-
-- Hybrid Approaches
-  - Uses a mix of geometric and feature-based tracking for better accuracy.
-- Kalman Filter-based Tracking
-  - Predicts object motion using state estimation and corrects based on observations.
-  - Pros:
-    - Handles motion smoothly.
-    - Works well in moderate occlusions.
-  - Cons:
-    - Assumes constant motion, which may not always hold true.
-    - Requires accurate initial detection.
-- DeepSORT (Simple Online and Realtime Tracker)
-  - A state-of-the-art multi-object tracker combining deep learning embeddings and Kalman filtering.
-  - Pros:
-    - Robust and widely used in real-time tracking applications.
-    - Handles occlusions better than traditional methods.
-  - Cons:
-    - Computationally intensive.
-
-## Edge cases
-
-There are the edge cases that plagues the current implementation
-
-1. Irregularities in YOLO detections
-    - YOLO maynot detect all vehicles in the ROI (False Negatives)
-    - YOLO may generate inaccurate bounding boxes
-    - False Positives
-2. Tracking Edge cases
-    - Occlusions and Overlapping of Vehicles
-        - This can be observed in this video `./roi_iou_output/overlappinp.mp4`
-    - Fast moving vehicles - Geometric tracking is prone to fail if the vehicles move fast
-        - This can be observed in this video `./roi_iou_output/high-speed.mp4`
-3. Irregularities in FPS can cause miscalculations in time
-    - Inconsistent Frame Rates
-    - Frame lag
-4. Other
-    - Camera Angles / Placement
-    - Vehicle is partially seen in the ROI
-    - Camera conditions - Low resolution, out of focus, blurryness
-        - Example `./roi_iou_output/out-of-focus.mp4`
-    - Changes in Lighting conditions
-    - Rain, Fog or dust etc
-
-## Addendum
-
-- I first wrote a rough version of this app in python with centroid tracking, which can be found here ./python/vehicle_roi_timer.ipynb
+- [Python prototype](./python/vehicle_roi_timer.ipynb) with centroid tracking
+- [OpenCV DNN documentation](https://docs.opencv.org/4.x/d2/d58/tutorial_table_of_content_dnn.html)
+- [YOLO model information](https://github.com/ultralytics/yolov5)
